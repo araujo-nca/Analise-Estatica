@@ -89,14 +89,15 @@ Q_barra = imag(S_barra);
 
 %%  chutes iniciais (V e theta)
 
-V_inicial = dados_barra(:, 4);
-theta_inicial = dados_barra(:, 5);
+V_inicial = dados_barra(:, 4);  % valores de tensao indicados na matriz de entrada
+theta_inicial = dados_barra(:, 5);  % valores de abertura angular indicados na matriz de entrada
 
+% aplicacao dos chutes iniciais nas barras em que e necessario o calculo de V e theta
 for k = 1:1:n_barras
-    if dados_barra(k, 2) == 1
+    if dados_barra(k, 2) == 1   % barra PQ
         V_inicial(k) = 1;
         theta_inicial(k) = 0;
-    elseif dados_barra(k, 2) == 2
+    elseif dados_barra(k, 2) == 2   % barra PV
         theta_inicial(k) = 0;
     end
 end
@@ -116,10 +117,11 @@ theta_calc(:,:,1) = theta_inicial;
 P_esp = P_barra;
 Q_esp = Q_barra;
 
+% aplicacao de zeros nos indices das barras que nao necessitam de calculo a fim de evitar problemas
 for k = 1:1:n_barras
-    if dados_barra(k, 2) == 2
+    if dados_barra(k, 2) == 2   % barra PV
         Q_esp(k) = 0;        
-    elseif dados_barra(k, 2) == 3
+    elseif dados_barra(k, 2) == 3   % barra V-theta
         P_esp(k) = 0;
         Q_esp(k) = 0;
     end
@@ -128,26 +130,28 @@ end
 % inicializacao do contador
 i = 1;
 
+% juncao de V e theta (coordenada polar) para calculo das correntes e potencias
 for k = 1:1:n_barras
     Vtheta_calc(k,:,i) = V_calc(k,:,i)*exp(j*theta_calc(k,:,i));
 end
 
-% calculo da matriz de correntes da primeira iteracao
+% calculo da matriz de correntes
 I_calc(:,:,i) = Ybus * Vtheta_calc(:,:,i);
-% calculo da matriz potencia da primeira iteracao
+% calculo da matriz potencia aparente
 S_calc(:,:,i) = Vtheta_calc(:,:,i) .* conj(I_calc(:,:,i));
 
-P_calc(:,:,i) = real(S_calc(:,:,i));    % matriz potencia ativa da primeira iteracao
-Q_calc(:,:,i) = imag(S_calc(:,:,i));    % matriz potencia reativa da primeira iteracao
+P_calc(:,:,i) = real(S_calc(:,:,i));    % matriz potencia ativa
+Q_calc(:,:,i) = imag(S_calc(:,:,i));    % matriz potencia reativa
 
 delta_P(:,:,i) = P_esp - P_calc(:,:,i);   % matriz delta P
 delta_Q(:,:,i) = Q_esp - Q_calc(:,:,i);   % matriz delta Q
 delta_PQ(:,:,i) = [delta_P(:,:,i); delta_Q(:,:,i)];
 
+% aplicacao de zeros nos indices das barras que nao necessitam de calculo a fim de evitar problemas
 for k = 1:1:n_barras
-    if dados_barra(k, 2) == 2
+    if dados_barra(k, 2) == 2   % barra PV
         delta_PQ(k + n_barras,:,i) = 0;
-    elseif dados_barra(k, 2) == 3
+    elseif dados_barra(k, 2) == 3   % barra V-theta
         delta_PQ(k,:,i) = 0;
         delta_PQ(k + n_barras,:,i) = 0;
     end
@@ -181,9 +185,9 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     
     % aplicacao do big number de acordo de com o tipo das barras
     for k = 1:1:n_barras
-        if dados_barra(k, 2) == 2
+        if dados_barra(k, 2) == 2   % barra PV
             L(k, k) = 10e12;
-        elseif dados_barra(k, 2) == 3
+        elseif dados_barra(k, 2) == 3   % barra V-theta
             H(k, k) = 10e12;
             L(k, k) = 10e12;
         end
@@ -197,24 +201,28 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     delta_theta(:,:,i) = delta_thetaV(1:size(delta_thetaV)/2,:,i);
     delta_V(:,:,i) = delta_thetaV(size(delta_thetaV)/2 + 1:size(delta_thetaV),:,i);
     
-    % calculo dos componentes finais delta P e delta Q para analise de uma possivel nova iteracao
+    % calculo dos componentes theta e V
     theta_calc(:,:,i + 1) = theta_calc(:,:,i) + delta_theta(:,:,i);
     V_calc(:,:,i + 1) = V_calc(:,:,i) + delta_V(:,:,i);
     
+    % juncao de V e theta (coordenada polar) para calculo das correntes e potencias
     for k = 1:1:n_barras
         Vtheta_calc(k,:,i + 1) = V_calc(k,:,i + 1)*exp(j*theta_calc(k,:,i + 1));
     end
     
+    % novos calculos de correntes e potencias aparentes
     I_calc(:,:,i + 1) = Ybus * Vtheta_calc(:,:,i + 1);
     S_calc(:,:,i + 1) = Vtheta_calc(:,:,i + 1) .* conj(I_calc(:,:,i + 1));
     
     P_calc(:,:,i + 1) = real(S_calc(:,:,i + 1));
     Q_calc(:,:,i + 1) = imag(S_calc(:,:,i + 1));
     
+    % calculo final de delta P e delta Q para analise de erro
     delta_P(:,:,i + 1) = P_esp - P_calc(:,:,i + 1);
     delta_Q(:,:,i + 1) = Q_esp - Q_calc(:,:,i + 1);
     delta_PQ(:,:,i + 1) = [delta_P(:,:,i + 1); delta_Q(:,:,i + 1)];
     
+    % preparacao para possivel nova iteracao
     for k = 1:1:n_barras
         if dados_barra(k, 2) == 2
             delta_PQ(k + n_barras,:,i + 1) = 0;

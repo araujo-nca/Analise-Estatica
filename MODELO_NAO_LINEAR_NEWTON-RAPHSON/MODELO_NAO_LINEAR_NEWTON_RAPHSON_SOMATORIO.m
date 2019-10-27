@@ -89,14 +89,15 @@ Q_barra = imag(S_barra);
 
 %%  chutes iniciais (V e theta)
 
-V_inicial = dados_barra(:, 4);
-theta_inicial = dados_barra(:, 5);
+V_inicial = dados_barra(:, 4);  % valores de tensao indicados na matriz de entrada
+theta_inicial = dados_barra(:, 5);  % valores de abertura angular indicados na matriz de entrada
 
+% aplicacao dos chutes iniciais nas barras em que e necessario o calculo de V e theta
 for k = 1:1:n_barras
-    if dados_barra(k, 2) == 1
+    if dados_barra(k, 2) == 1   % barra PQ
         V_inicial(k) = 1;
         theta_inicial(k) = 0;
-    elseif dados_barra(k, 2) == 2
+    elseif dados_barra(k, 2) == 2   % barra PV
         theta_inicial(k) = 0;
     end
 end
@@ -116,10 +117,11 @@ theta_calc(:,:,1) = theta_inicial;
 P_esp = P_barra;
 Q_esp = Q_barra;
 
+% aplicacao de zeros nos indices das barras que nao necessitam de calculo a fim de evitar problemas
 for k = 1:1:n_barras
-    if dados_barra(k, 2) == 2
+    if dados_barra(k, 2) == 2   % barra PV
         Q_esp(k) = 0;        
-    elseif dados_barra(k, 2) == 3
+    elseif dados_barra(k, 2) == 3   % barra V-theta
         P_esp(k) = 0;
         Q_esp(k) = 0;
     end
@@ -128,6 +130,7 @@ end
 % inicializacao do contador
 i = 1;
 
+% metodo de calculo das matrizes de potencia ativa e reativa a partir do somatorio das conexoes com cada barra
 for k = 1:1:size(dados_linha, 1)
     P_calc(dados_linha(k, 1),:,i) = P_calc(dados_linha(k, 1),:,i) + V_calc(dados_linha(k, 2),:,i) * ( Gbus(dados_linha(k, 1),dados_linha(k, 2)) * cos(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i)) ...
         + Bbus(dados_linha(k, 1),dados_linha(k, 2)) * sin(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i)) );
@@ -139,6 +142,7 @@ for k = 1:1:size(dados_linha, 1)
         - Bbus(dados_linha(k, 2),dados_linha(k, 1)) * cos(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i)) );
 end
 
+% aplicacao do componente de indice 'kk', nao calculado no somatorio acima
 for m = 1:1:n_barras
     P_calc(m,:,i) = V_calc(m,:,i)^2 * Gbus(m,m) + V_calc(m,:,i) * P_calc(m,:,i);
     Q_calc(m,:,i) = V_calc(m,:,i)^2 * (-Bbus(m,m)) + V_calc(m,:,i) * Q_calc(m,:,i);
@@ -148,10 +152,11 @@ delta_P(:,:,i) = P_esp - P_calc(:,:,i);   % matriz delta P
 delta_Q(:,:,i) = Q_esp - Q_calc(:,:,i);   % matriz delta Q
 delta_PQ(:,:,i) = [delta_P(:,:,i); delta_Q(:,:,i)];
 
+% aplicacao de zeros nos indices das barras que nao necessitam de calculo a fim de evitar problemas
 for k = 1:1:n_barras
-    if dados_barra(k, 2) == 2
+    if dados_barra(k, 2) == 2   % barra PV
         delta_PQ(k + n_barras,:,i) = 0;
-    elseif dados_barra(k, 2) == 3
+    elseif dados_barra(k, 2) == 3   % barra V-theta
         delta_PQ(k,:,i) = 0;
         delta_PQ(k + n_barras,:,i) = 0;
     end
@@ -185,9 +190,9 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     
     % aplicacao do big number de acordo de com o tipo das barras
     for k = 1:1:n_barras
-        if dados_barra(k, 2) == 2
+        if dados_barra(k, 2) == 2   % barra PV
             L(k, k) = 10e12;
-        elseif dados_barra(k, 2) == 3
+        elseif dados_barra(k, 2) == 3   % barra V-theta
             H(k, k) = 10e12;
             L(k, k) = 10e12;
         end
@@ -201,13 +206,15 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     delta_theta(:,:,i) = delta_thetaV(1:size(delta_thetaV)/2,:,i);
     delta_V(:,:,i) = delta_thetaV(size(delta_thetaV)/2 + 1:size(delta_thetaV),:,i);
     
-    % calculo dos componentes finais delta P e delta Q para analise de uma possivel nova iteracao
+    % calculo dos componentes theta e V
     theta_calc(:,:,i + 1) = theta_calc(:,:,i) + delta_theta(:,:,i);
     V_calc(:,:,i + 1) = V_calc(:,:,i) + delta_V(:,:,i);
     
+    % pre-alocacao da proxima posicao dos vetores P e Q calculados
     P_calc(:,:,i + 1) = zeros(n_barras, 1);
     Q_calc(:,:,i + 1) = zeros(n_barras, 1);
 
+    % calculo das potencias atraves dos somatorios
     for k = 1:1:size(dados_linha, 1)
         P_calc(dados_linha(k, 1),:,i + 1) = P_calc(dados_linha(k, 1),:,i + 1) + V_calc(dados_linha(k, 2),:,i + 1) * ( Gbus(dados_linha(k, 1),dados_linha(k, 2)) * cos(theta_calc(dados_linha(k, 1),:,i + 1) - theta_calc(dados_linha(k, 2),:,i + 1)) ...
             + Bbus(dados_linha(k, 1),dados_linha(k, 2)) * sin(theta_calc(dados_linha(k, 1),:,i + 1) - theta_calc(dados_linha(k, 2),:,i + 1)) );
@@ -219,19 +226,22 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
             - Bbus(dados_linha(k, 2),dados_linha(k, 1)) * cos(theta_calc(dados_linha(k, 2),:,i + 1) - theta_calc(dados_linha(k, 1),:,i + 1)) );
     end
 
+    % aplicacao do componente de indice 'kk', nao calculado no somatorio acima
     for m = 1:1:n_barras
         P_calc(m,:,i + 1) = V_calc(m,:,i + 1)^2 * Gbus(m,m) + V_calc(m,:,i + 1) * P_calc(m,:,i + 1);
         Q_calc(m,:,i + 1) = V_calc(m,:,i + 1)^2 * (-Bbus(m,m)) + V_calc(m,:,i + 1) * Q_calc(m,:,i + 1);
     end
 
+    % calculo final de delta P e delta Q para analise de erro
     delta_P(:,:,i + 1) = P_esp - P_calc(:,:,i + 1);
     delta_Q(:,:,i + 1) = Q_esp - Q_calc(:,:,i + 1);
     delta_PQ(:,:,i + 1) = [delta_P(:,:,i + 1); delta_Q(:,:,i + 1)];
     
+    % preparacao para possivel nova iteracao
     for k = 1:1:n_barras
-        if dados_barra(k, 2) == 2
+        if dados_barra(k, 2) == 2   % barra PV
             delta_PQ(k + n_barras,:,i + 1) = 0;
-        elseif dados_barra(k, 2) == 3
+        elseif dados_barra(k, 2) == 3   % barra V-theta
             delta_PQ(k,:,i + 1) = 0;
             delta_PQ(k + n_barras,:,i + 1) = 0;
         end
