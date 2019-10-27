@@ -4,40 +4,40 @@
 
 clear
 close all
-format longEng
+format long
 clc
 
 %%  leitura do arquivo de exemplo
 
+% Sistema_4_barras_Monticelli;
 % Sistema_14_barra_2;
 % Sistema_24_barras;
 % Sistema_33_barras;
-% Sistema_4_barras_Monticelli;
 % SISTEMA 107 BARRAS;
 
 %%  teste para implementacao
 
-% ****   Sistema teste Monticelli  ****
-
-% ------------------------------ DADOS DE BARRA -----------------------------------
-
-%  No TB G (V)     (Ang)     (Pg)    (Qg)     (Qn)    (Qm)    (Pl)   (Ql)    bshbar
-DBAR = [
-    1 3 1 1.0         .0       .00   .00     -999.9  9999.9   0.00   0.00    0.0
-    2 1 1 1.0         .0       .00   .07     -999.9  9999.9   0.30   0.00    0.0
-    ];
-
-% TB = 1: carga ; 3: referencia
-% Tipos de barra: 1 - carga (PQ), 2 - geracao (PV), 3 - referencia (V-theta)
-
-% ------------------------------ DADOS DE LINHA -----------------------------------
-
-DLIN = [
-    %FROM  TO   %R(pu)  %X(pu)   %Bsh     %TAP     %PHI                                   CH
-    1      2     0.20    1.00    0.02     1.00     .000     .000    .0     900     .0     7
-    ];
-
-PB = 1;
+% % ****   Sistema teste Monticelli  ****
+% 
+% % ------------------------------ DADOS DE BARRA -----------------------------------
+% 
+% %  No TB G (V)     (Ang)     (Pg)    (Qg)   (Qn)  (Qm)      (Pl)    (Ql)    bshbar
+% DBAR = [
+%     1 3 1 1.0         .0       .0      .0  -999.9  9999.9     0.0    0.0      0.0
+%     2 2 1 1.0         .0       .0      .0  -999.9  9999.9     0.40   0.02     0.0
+%     ];
+% 
+% % TB = 1: carga ; 3: referencia
+% % Tipos de barra: 1 - carga (PQ), 2 - geracao (PV), 3 - referencia (V-theta)
+% 
+% % ------------------------------ DADOS DE LINHA -----------------------------------
+% 
+% DLIN = [
+%     %FROM  TO   %R(pu)  %X(pu)   %Bsh     %TAP     %PHI                                   CH
+%     1    2     0.20    1.00    0.02     1.00     .000     .000    .0     900     .0     7
+%     ];
+% 
+% PB = 1;
 
 %%  declaracao de variaveis
 
@@ -113,15 +113,15 @@ theta_calc(:,:,1) = theta_inicial;
 [H, N, M, L] = deal(zeros(n_barras));
 [Jacob, Jacob_bn] = deal(zeros(2 * n_barras));
 
-delta_P_esp = P_barra;
-delta_Q_esp = Q_barra;
+P_esp = P_barra;
+Q_esp = Q_barra;
 
 for k = 1:1:n_barras
     if dados_barra(k, 2) == 2
-        delta_Q_esp(k) = 0;        
+        Q_esp(k) = 0;        
     elseif dados_barra(k, 2) == 3
-        delta_P_esp(k) = 0;
-        delta_Q_esp(k) = 0;
+        P_esp(k) = 0;
+        Q_esp(k) = 0;
     end
 end
 
@@ -140,8 +140,8 @@ S_calc(:,:,i) = Vtheta_calc(:,:,i) .* conj(I_calc(:,:,i));
 P_calc(:,:,i) = real(S_calc(:,:,i));    % matriz potencia ativa da primeira iteracao
 Q_calc(:,:,i) = imag(S_calc(:,:,i));    % matriz potencia reativa da primeira iteracao
 
-delta_P(:,:,i) = delta_P_esp - P_calc(:,:,i);   % matriz delta P
-delta_Q(:,:,i) = delta_Q_esp - Q_calc(:,:,i);   % matriz delta Q
+delta_P(:,:,i) = P_esp - P_calc(:,:,i);   % matriz delta P
+delta_Q(:,:,i) = Q_esp - Q_calc(:,:,i);   % matriz delta Q
 delta_PQ(:,:,i) = [delta_P(:,:,i); delta_Q(:,:,i)];
 
 for k = 1:1:n_barras
@@ -156,7 +156,7 @@ end
 % inicio do processo de iteracoes
 while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     
-    % criacao/atualizacao da metriz jacobiana
+    % criacao/atualizacao da matriz jacobiana
     for m = 1:1:n_barras
         for n = 1:1:n_barras
             
@@ -211,8 +211,8 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     P_calc(:,:,i + 1) = real(S_calc(:,:,i + 1));
     Q_calc(:,:,i + 1) = imag(S_calc(:,:,i + 1));
     
-    delta_P(:,:,i + 1) = delta_P_esp - P_calc(:,:,i + 1);
-    delta_Q(:,:,i + 1) = delta_Q_esp - Q_calc(:,:,i + 1);
+    delta_P(:,:,i + 1) = P_esp - P_calc(:,:,i + 1);
+    delta_Q(:,:,i + 1) = Q_esp - Q_calc(:,:,i + 1);
     delta_PQ(:,:,i + 1) = [delta_P(:,:,i + 1); delta_Q(:,:,i + 1)];
     
     for k = 1:1:n_barras
@@ -227,5 +227,7 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     % acrescimo de uma unidade ao contador
     i = i + 1;
 end
+
+%%  subsistema 2 (calculo de P e Q)
 
 
