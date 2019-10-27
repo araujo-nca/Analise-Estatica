@@ -17,27 +17,27 @@ clc
 
 %%  teste para implementacao
 
-% % ****   Sistema teste Monticelli  ****
-% 
-% % ------------------------------ DADOS DE BARRA -----------------------------------
-% 
-% %  No TB G (V)     (Ang)     (Pg)    (Qg)   (Qn)  (Qm)      (Pl)    (Ql)    bshbar
-% DBAR = [
-%     1 3 1 1.0         .0       .0      .0  -999.9  9999.9     0.0    0.0      0.0
-%     2 2 1 1.0         .0       .0      .0  -999.9  9999.9     0.40   0.02     0.0
-%     ];
-% 
-% % TB = 1: carga ; 3: referencia
-% % Tipos de barra: 1 - carga (PQ), 2 - geracao (PV), 3 - referencia (V-theta)
-% 
-% % ------------------------------ DADOS DE LINHA -----------------------------------
-% 
-% DLIN = [
-%     %FROM  TO   %R(pu)  %X(pu)   %Bsh     %TAP     %PHI                                   CH
-%     1    2     0.20    1.00    0.02     1.00     .000     .000    .0     900     .0     7
-%     ];
-% 
-% PB = 1;
+% ****   Sistema teste Monticelli  ****
+
+% ------------------------------ DADOS DE BARRA -----------------------------------
+
+%  No TB G (V)     (Ang)     (Pg)    (Qg)   (Qn)  (Qm)      (Pl)    (Ql)    bshbar
+DBAR = [
+    1 3 1 1.0         .0       .0      .0  -999.9  9999.9     0.0    0.0      0.0
+    2 2 1 1.0         .0       .0      .0  -999.9  9999.9     0.40   0.02     0.0
+    ];
+
+% TB = 1: carga ; 3: referencia
+% Tipos de barra: 1 - carga (PQ), 2 - geracao (PV), 3 - referencia (V-theta)
+
+% ------------------------------ DADOS DE LINHA -----------------------------------
+
+DLIN = [
+    %FROM  TO   %R(pu)  %X(pu)   %Bsh     %TAP     %PHI                                   CH
+    1    2     0.20    1.00    0.02     1.00     .000     .000    .0     900     .0     7
+    ];
+
+PB = 1;
 
 %%  declaracao de variaveis
 
@@ -253,4 +253,24 @@ end
 
 %%  subsistema 2 (calculo de P e Q)
 
+% pre-alocacao da proxima posicao dos vetores P e Q calculados
+P_calc_final = zeros(n_barras, 1);
+Q_calc_final = zeros(n_barras, 1);
 
+% metodo de calculo das matrizes de potencia ativa e reativa a partir do somatorio das conexoes com cada barra
+for k = 1:1:size(dados_linha, 1)
+    P_calc_final(dados_linha(k, 1)) = P_calc_final(dados_linha(k, 1)) + V_calc(dados_linha(k, 2),:,i) * ( Gbus(dados_linha(k, 1),dados_linha(k, 2)) * cos(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i)) ...
+        + Bbus(dados_linha(k, 1),dados_linha(k, 2)) * sin(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i)) );
+    P_calc_final(dados_linha(k, 2)) = P_calc_final(dados_linha(k, 2)) + V_calc(dados_linha(k, 1),:,i) * ( Gbus(dados_linha(k, 2),dados_linha(k, 1)) * cos(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i)) ...
+        + Bbus(dados_linha(k, 2),dados_linha(k, 1)) * sin(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i)) );
+    Q_calc_final(dados_linha(k, 1)) = Q_calc_final(dados_linha(k, 1)) + V_calc(dados_linha(k, 2),:,i) * ( Gbus(dados_linha(k, 1),dados_linha(k, 2)) * sin(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i)) ...
+        - Bbus(dados_linha(k, 1),dados_linha(k, 2)) * cos(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i)) );
+    Q_calc_final(dados_linha(k, 2)) = Q_calc_final(dados_linha(k, 2)) + V_calc(dados_linha(k, 1),:,i) * ( Gbus(dados_linha(k, 2),dados_linha(k, 1)) * sin(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i)) ...
+        - Bbus(dados_linha(k, 2),dados_linha(k, 1)) * cos(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i)) );
+end
+
+% aplicacao do componente de indice 'kk', nao calculado no somatorio acima
+for m = 1:1:n_barras
+    P_calc_final(m) = V_calc(m,:,i)^2 * Gbus(m,m) + V_calc(m,:,i) * P_calc_final(m);
+    Q_calc_final(m) = V_calc(m,:,i)^2 * (-Bbus(m,m)) + V_calc(m,:,i) * Q_calc_final(m);
+end
