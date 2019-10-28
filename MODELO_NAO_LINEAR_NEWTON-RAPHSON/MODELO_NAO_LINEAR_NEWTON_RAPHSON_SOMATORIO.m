@@ -276,7 +276,7 @@ for m = 1:1:n_barras
     Q_calc_final(m) = V_calc(m,:,i)^2 * (-Bbus(m,m)) + V_calc(m,:,i) * Q_calc_final(m);
 end
 
-
+% calculo dos fluxos de potencia entre as barras que possuem conexao
 for k = 1:1:size(dados_linha, 1)
     P_km(dados_linha(k, 1), dados_linha(k, 2)) = ( dados_linha(k, 6) * V_calc(dados_linha(k, 1),:,i) )^2 * Gbus(dados_linha(k, 1), dados_linha(k, 2)) ...
         - ( dados_linha(k, 6) * V_calc(dados_linha(k, 1),:,i) ) * V_calc(dados_linha(k, 2),:,i) * Gbus(dados_linha(k, 1), dados_linha(k, 2)) * cos(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i) + dados_linha(k, 7)) ...
