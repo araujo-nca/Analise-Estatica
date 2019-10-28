@@ -21,10 +21,10 @@ clc
 
 % ------------------------------ DADOS DE BARRA -----------------------------------
 
-%  No TB G (V)     (Ang)     (Pg)    (Qg)   (Qn)  (Qm)      (Pl)    (Ql)    bshbar
+%  No TB G (V)     (Ang)     (Pg)    (Qg)     (Qn)    (Qm)    (Pl)   (Ql)    bshbar
 DBAR = [
-    1 3 1 1.0         .0       .0      .0  -999.9  9999.9     0.0    0.0      0.0
-    2 2 1 1.0         .0       .0      .0  -999.9  9999.9     0.40   0.02     0.0
+    1 3 1 1.0         .0       .00   .00     -999.9  9999.9   0.00   0.00    0.0
+    2 1 1 1.0         .0       .00   .07     -999.9  9999.9   0.30   0.00    0.0
     ];
 
 % TB = 1: carga ; 3: referencia
@@ -34,7 +34,7 @@ DBAR = [
 
 DLIN = [
     %FROM  TO   %R(pu)  %X(pu)   %Bsh     %TAP     %PHI                                   CH
-    1    2     0.20    1.00    0.02     1.00     .000     .000    .0     900     .0     7
+    1      2     0.20    1.00    0.02     1.00     .000     .000    .0     900     .0     7
     ];
 
 PB = 1;
@@ -251,7 +251,7 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     i = i + 1;
 end
 
-%%  subsistema 2 (calculo de P e Q)
+%%  subsistema 2 (calculo de P e Q + fluxo de potencia e perdas)
 
 % pre-alocacao de matrizes
 [P_calc_final, Q_calc_final]  = deal(zeros(n_barras, 1));
