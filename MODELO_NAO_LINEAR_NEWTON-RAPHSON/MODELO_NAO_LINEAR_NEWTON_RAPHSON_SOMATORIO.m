@@ -253,9 +253,10 @@ end
 
 %%  subsistema 2 (calculo de P e Q)
 
-% pre-alocacao da proxima posicao dos vetores P e Q calculados
-P_calc_final = zeros(n_barras, 1);
-Q_calc_final = zeros(n_barras, 1);
+% pre-alocacao de matrizes
+[P_calc_final, Q_calc_final]  = deal(zeros(n_barras, 1));
+[P_km, Q_km, perdas_P, perdas_Q] = deal(zeros(n_barras));
+
 
 % metodo de calculo das matrizes de potencia ativa e reativa a partir do somatorio das conexoes com cada barra
 for k = 1:1:size(dados_linha, 1)
@@ -274,3 +275,30 @@ for m = 1:1:n_barras
     P_calc_final(m) = V_calc(m,:,i)^2 * Gbus(m,m) + V_calc(m,:,i) * P_calc_final(m);
     Q_calc_final(m) = V_calc(m,:,i)^2 * (-Bbus(m,m)) + V_calc(m,:,i) * Q_calc_final(m);
 end
+
+
+for k = 1:1:size(dados_linha, 1)
+    P_km(dados_linha(k, 1), dados_linha(k, 2)) = ( dados_linha(k, 6) * V_calc(dados_linha(k, 1),:,i) )^2 * Gbus(dados_linha(k, 1), dados_linha(k, 2)) ...
+        - ( dados_linha(k, 6) * V_calc(dados_linha(k, 1),:,i) ) * V_calc(dados_linha(k, 2),:,i) * Gbus(dados_linha(k, 1), dados_linha(k, 2)) * cos(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i) + dados_linha(k, 7)) ...
+        - ( dados_linha(k, 6) * V_calc(dados_linha(k, 1),:,i) ) * V_calc(dados_linha(k, 2),:,i) * Bbus(dados_linha(k, 1), dados_linha(k, 2)) * sin(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i) + dados_linha(k, 7));
+    P_km(dados_linha(k, 2), dados_linha(k, 1)) = ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) )^2 * Gbus(dados_linha(k, 2), dados_linha(k, 1)) ...
+        - ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) ) * V_calc(dados_linha(k, 1),:,i) * Gbus(dados_linha(k, 2), dados_linha(k, 1)) * cos(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i) + dados_linha(k, 7)) ...
+        - ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) ) * V_calc(dados_linha(k, 1),:,i) * Bbus(dados_linha(k, 2), dados_linha(k, 1)) * sin(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i) + dados_linha(k, 7));
+    Q_km(dados_linha(k, 1), dados_linha(k, 2)) = -( dados_linha(k, 6) * V_calc(dados_linha(k, 1),:,i) )^2 * ( Bbus(dados_linha(k, 1), dados_linha(k, 2)) + dados_linha(k, 5) ) ...
+        + ( dados_linha(k, 6) * V_calc(dados_linha(k, 1),:,i) ) * V_calc(dados_linha(k, 2),:,i) * Bbus(dados_linha(k, 1), dados_linha(k, 2)) * cos(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i) + dados_linha(k, 7)) ...
+        - ( dados_linha(k, 6) * V_calc(dados_linha(k, 1),:,i) ) * V_calc(dados_linha(k, 2),:,i) * Gbus(dados_linha(k, 1), dados_linha(k, 2)) * sin(theta_calc(dados_linha(k, 1),:,i) - theta_calc(dados_linha(k, 2),:,i) + dados_linha(k, 7));
+    Q_km(dados_linha(k, 2), dados_linha(k, 1)) = -( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) )^2 * ( Bbus(dados_linha(k, 2), dados_linha(k, 1)) + dados_linha(k, 5) ) ...
+        + ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) ) * V_calc(dados_linha(k, 1),:,i) * Bbus(dados_linha(k, 2), dados_linha(k, 1)) * cos(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i) + dados_linha(k, 7)) ...
+        - ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) ) * V_calc(dados_linha(k, 1),:,i) * Gbus(dados_linha(k, 2), dados_linha(k, 1)) * sin(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i) + dados_linha(k, 7));
+    
+    perdas_P(dados_linha(k, 1), dados_linha(k, 2)) = P_km(dados_linha(k, 1), dados_linha(k, 2)) + P_km(dados_linha(k, 2), dados_linha(k, 1));
+    perdas_P(dados_linha(k, 2), dados_linha(k, 1)) = perdas_P(dados_linha(k, 1), dados_linha(k, 2));
+    
+    perdas_Q(dados_linha(k, 1), dados_linha(k, 2)) = Q_km(dados_linha(k, 1), dados_linha(k, 2)) + Q_km(dados_linha(k, 2), dados_linha(k, 1));
+    perdas_Q(dados_linha(k, 2), dados_linha(k, 1)) = perdas_Q(dados_linha(k, 1), dados_linha(k, 2));
+end
+
+P_km = sparse(P_km);
+Q_km = sparse(Q_km);
+perdas_P = sparse(perdas_P);
+perdas_Q = sparse(perdas_Q);
