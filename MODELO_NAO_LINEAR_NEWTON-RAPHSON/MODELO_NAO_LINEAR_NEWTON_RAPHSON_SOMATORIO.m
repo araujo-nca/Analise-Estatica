@@ -13,6 +13,7 @@ clc
 % Sistema_14_barra_2;
 % Sistema_24_barras;
 % Sistema_33_barras;
+% Sistema_107_barras;
 
 %%  teste para implementacao
 
@@ -66,9 +67,9 @@ y_km = 1 ./ (dados_linha(:, 3) + j*dados_linha(:, 4));
 % criacao matriz admitancia nodal
 for k = 1:1:size(dados_linha, 1)
     Ybus(dados_linha(k, 1), dados_linha(k, 1)) = Ybus(dados_linha(k, 1), dados_linha(k, 1)) + dados_linha(k, 6)^2 * y_km(k) + j*dados_barra(dados_linha(k, 1), 12) + j*dados_linha(k, 5);
-    Ybus(dados_linha(k, 1), dados_linha(k, 2)) = dados_linha(k, 6) * (- y_km(k));
-    Ybus(dados_linha(k, 2), dados_linha(k, 1)) = Ybus(dados_linha(k, 1), dados_linha(k, 2));
-    Ybus(dados_linha(k, 2), dados_linha(k, 2)) = Ybus(dados_linha(k, 2), dados_linha(k, 2)) + y_km(k) + j*dados_barra(dados_linha(k, 1), 12) + j*dados_linha(k, 5);
+    Ybus(dados_linha(k, 1), dados_linha(k, 2)) = Ybus(dados_linha(k, 1), dados_linha(k, 2)) + dados_linha(k, 6) * exp(- j * dados_linha(k, 7)) * (- y_km(k));
+    Ybus(dados_linha(k, 2), dados_linha(k, 1)) = Ybus(dados_linha(k, 2), dados_linha(k, 1)) + dados_linha(k, 6) * exp(j * dados_linha(k, 7)) * (- y_km(k));
+    Ybus(dados_linha(k, 2), dados_linha(k, 2)) = Ybus(dados_linha(k, 2), dados_linha(k, 2)) + y_km(k) + j*dados_barra(dados_linha(k, 2), 12) + j*dados_linha(k, 5);
 end
 
 Gbus = real(Ybus);  % matriz de condutancias
