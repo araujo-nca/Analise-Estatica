@@ -383,7 +383,8 @@ end
 
 DBAR(:,10) = PgeradoQgerado(:,5);
 DBAR(:,11) = PgeradoQgerado(:,6);
-DBAR(:,12) = PgeradoQgerado(:,7);
+% DBAR(:,12) = PgeradoQgerado(:,7);
+DBAR(:,12) = PgeradoQgerado(:,7) / 100;
 % DBAR(:,8) = -99999999999999.9;
 % DBAR(:,9) = 999999999999999.9;
 
