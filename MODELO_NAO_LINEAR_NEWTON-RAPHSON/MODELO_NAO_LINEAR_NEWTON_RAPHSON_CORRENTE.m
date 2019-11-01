@@ -275,13 +275,13 @@ figure
 subplot(2,1,1)
 bar(graph_delta_P)
 title('Evolucao \DeltaP / iteracao')
-xlabel('nº da barra')
+xlabel('nï¿½ da barra')
 ylabel('Residuo \DeltaP (pu)')
 grid
 subplot(2,1,2)
 bar(graph_delta_Q)
 title('Evolucao \DeltaQ / iteracao')
-xlabel('nº da barra')
+xlabel('nï¿½ da barra')
 ylabel('Residuo \DeltaQ (pu)')
 grid
 
@@ -292,19 +292,19 @@ fprintf('---------- RESULTADOS ----------\n\n\n')
 
 fprintf('*** SUBSISTEMA 1 ***\n\n')
 
-disp('Abertura angular theta (°):')
+disp('Abertura angular theta (ï¿½):')
 display(rad2deg(theta_calc(:,:,i)))
 figure
 bar(rad2deg(theta_calc(:,:,i)))
-xlabel('nº da barra')
-ylabel('Theta (°)')
+xlabel('nï¿½ da barra')
+ylabel('Theta (ï¿½)')
 grid
 
 disp('Modulo da tensao (pu):')
 display(V_calc(:,:,i))
 figure
 bar(V_calc(:,:,i))
-xlabel('nº da barra')
+xlabel('nï¿½ da barra')
 ylabel('Tensao (pu)')
 grid
 
