@@ -12,9 +12,9 @@ clc
 % Sistema_4_barras_Monticelli;
 % Sistema_14_barra_2;
 % Sistema_24_barras;
-Sistema_24_barras_naocorrigido;
+% Sistema_24_barras_naocorrigido;
 % Sistema_33_barras;
-% Sistema_107_barras;
+Sistema_107_barras;
 
 %%  declaracao de variaveis
 
@@ -272,12 +272,16 @@ perdas_Q = sparse(perdas_Q);
 figure
 subplot(2,1,1)
 bar(graph_delta_P)
+title('Evolucao \DeltaP / iteracao')
 xlabel('nº da barra')
 ylabel('Residuo \DeltaP (pu)')
+grid
 subplot(2,1,2)
 bar(graph_delta_Q)
+title('Evolucao \DeltaQ / iteracao')
 xlabel('nº da barra')
 ylabel('Residuo \DeltaQ (pu)')
+grid
 
 format short
 
@@ -292,6 +296,7 @@ figure
 bar(rad2deg(theta_calc(:,:,i)))
 xlabel('nº da barra')
 ylabel('Theta (°)')
+grid
 
 disp('Modulo da tensao (pu):')
 display(V_calc(:,:,i))
@@ -299,6 +304,7 @@ figure
 bar(V_calc(:,:,i))
 xlabel('nº da barra')
 ylabel('Tensao (pu)')
+grid
 
 
 fprintf('\n*** SUBSISTEMA 2 ***\n\n')
