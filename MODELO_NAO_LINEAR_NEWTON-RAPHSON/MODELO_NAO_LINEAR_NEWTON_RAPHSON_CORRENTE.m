@@ -12,7 +12,7 @@ clc
 % Sistema_ex2barrasPV;
 % Sistema_ex2barrasPQ;
 % Sistema_4_barras_Monticelli;
-% Sistema_14_barra_2;
+% Sistema_14_barras;
 % Sistema_24_barras;
 % Sistema_24_barras_naocorrigido;
 % Sistema_33_barras;
