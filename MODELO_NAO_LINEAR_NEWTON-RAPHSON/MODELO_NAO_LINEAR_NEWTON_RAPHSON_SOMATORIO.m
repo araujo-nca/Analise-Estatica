@@ -1,4 +1,4 @@
-%%% FLUXO DE CARGA NAO LINEARIZADO - NEWTON-RAPHSON %%%
+%%% FLUXO DE CARGA NAO LINEARIZADO - NEWTON-RAPHSON - METODO ATRAVES DE SOMATORIOS %%%
 
 %%
 
@@ -10,10 +10,10 @@ clc
 %%  leitura do arquivo de exemplo
 
 % Sistema_4_barras_Monticelli;
-% Sistema_14_barra_2;
+Sistema_14_barra_2;
 % Sistema_24_barras;
 % Sistema_24_barras_naocorrigido;
-Sistema_33_barras;
+% Sistema_33_barras;
 % Sistema_107_barras;
 
 %%  declaracao de variaveis
@@ -276,13 +276,40 @@ for k = 1:1:size(dados_linha, 1)
         - ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) ) * V_calc(dados_linha(k, 1),:,i) * Gbus(dados_linha(k, 2), dados_linha(k, 1)) * sin(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i) + dados_linha(k, 7));
     
     perdas_P(dados_linha(k, 1), dados_linha(k, 2)) = P_km(dados_linha(k, 1), dados_linha(k, 2)) + P_km(dados_linha(k, 2), dados_linha(k, 1));
-    perdas_P(dados_linha(k, 2), dados_linha(k, 1)) = perdas_P(dados_linha(k, 1), dados_linha(k, 2));
-    
     perdas_Q(dados_linha(k, 1), dados_linha(k, 2)) = Q_km(dados_linha(k, 1), dados_linha(k, 2)) + Q_km(dados_linha(k, 2), dados_linha(k, 1));
-    perdas_Q(dados_linha(k, 2), dados_linha(k, 1)) = perdas_Q(dados_linha(k, 1), dados_linha(k, 2));
 end
 
 P_km = sparse(P_km);
 Q_km = sparse(Q_km);
 perdas_P = sparse(perdas_P);
 perdas_Q = sparse(perdas_Q);
+
+%%  impressao de resultados
+
+format short
+
+fprintf('---------- RESULTADOS ----------\n\n\n')
+
+
+fprintf('*** SUBSISTEMA 1 ***\n\n')
+
+disp('Abertura angular theta (°):')
+display(rad2deg(theta_calc(:,:,i)))
+
+disp('Modulo da tensao (pu):')
+display(V_calc(:,:,i))
+
+
+fprintf('\n*** SUBSISTEMA 2 ***\n\n')
+
+disp('Potencia ativa (pu):')
+display(P_calc_final)
+
+disp('Potencia reativa (pu):')
+display(Q_calc_final)
+
+disp('Perdas de potencia ativa (pu):')
+display(perdas_P)
+
+disp('Perdas de potencia reativa (pu):')
+display(perdas_Q)
