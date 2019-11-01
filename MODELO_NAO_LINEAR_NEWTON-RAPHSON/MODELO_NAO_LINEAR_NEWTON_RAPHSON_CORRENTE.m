@@ -113,7 +113,7 @@ i = 1;
 
 % juncao de V e theta (coordenada polar) para calculo das correntes e potencias
 for k = 1:1:n_barras
-    Vtheta_calc(k,:,i) = V_calc(k,:,i)*exp(j*theta_calc(k,:,i));
+    Vtheta_calc(k,:,i) = V_calc(k,:,i) * exp(j*theta_calc(k,:,i));
 end
 
 % calculo da matriz de correntes
@@ -167,10 +167,10 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     % aplicacao do big number de acordo de com o tipo das barras
     for k = 1:1:n_barras
         if dados_barra(k, 2) == 2   % barra PV
-            L(k, k) = 10e12;
+            L(k, k) = 10e15;
         elseif dados_barra(k, 2) == 3   % barra V-theta
-            H(k, k) = 10e12;
-            L(k, k) = 10e12;
+            L(k, k) = 10e15;
+            H(k, k) = 10e15;
         end
     end
     
@@ -180,7 +180,7 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     % calculo dos componentes delta theta e delta V
     delta_thetaV(:,:,i) = Jacob_bn(:,:,i) \ delta_PQ(:,:,i);
     delta_theta(:,:,i) = delta_thetaV(1:size(delta_thetaV)/2,:,i);
-    delta_V(:,:,i) = delta_thetaV(size(delta_thetaV)/2 + 1:size(delta_thetaV),:,i);
+    delta_V(:,:,i) = delta_thetaV(size(delta_thetaV)/2+1:size(delta_thetaV),:,i);
     
     % calculo dos componentes theta e V
     theta_calc(:,:,i + 1) = theta_calc(:,:,i) + delta_theta(:,:,i);
@@ -188,7 +188,7 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     
     % juncao de V e theta (coordenada polar) para calculo das correntes e potencias
     for k = 1:1:n_barras
-        Vtheta_calc(k,:,i + 1) = V_calc(k,:,i + 1)*exp(j*theta_calc(k,:,i + 1));
+        Vtheta_calc(k,:,i + 1) = V_calc(k,:,i + 1) * exp(j*theta_calc(k,:,i + 1));
     end
     
     % novos calculos de correntes e potencias aparentes
@@ -217,6 +217,7 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     i = i + 1;
 end
 
+% numero final de iteracoes
 iteracoes = i - 1;
 
 %%  subsistema 2 (calculo de P e Q + fluxo de potencia e perdas)
@@ -227,7 +228,7 @@ Vtheta_calc_final  = zeros(n_barras, 1);
 
 % juncao de V e theta (coordenada polar) para calculo das correntes e potencias
 for k = 1:1:n_barras
-    Vtheta_calc_final(k) = V_calc(k,:,i)*exp(j*theta_calc(k,:,i));
+    Vtheta_calc_final(k) = V_calc(k,:,i) * exp(j*theta_calc(k,:,i));
 end
 
 % novos calculos de correntes e potencias aparentes
