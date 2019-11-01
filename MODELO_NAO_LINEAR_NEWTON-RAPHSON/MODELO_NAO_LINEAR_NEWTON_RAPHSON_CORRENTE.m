@@ -1,4 +1,4 @@
-%%% FLUXO DE CARGA NAO LINEARIZADO - NEWTON-RAPHSON %%%
+%%% FLUXO DE CARGA NAO LINEARIZADO - NEWTON-RAPHSON - METODO ATRAVES DO CALCULO DAS CORRENTES %%%
 
 %%
 
@@ -13,8 +13,8 @@ clc
 % Sistema_14_barra_2;
 % Sistema_24_barras;
 % Sistema_24_barras_naocorrigido;
-Sistema_33_barras;
-% Sistema_107_barras;
+% Sistema_33_barras;
+Sistema_107_barras;
 
 %%  declaracao de variaveis
 
@@ -90,7 +90,7 @@ theta_calc(:,:,1) = theta_inicial;
 %%  subsistema 1 (calculo de V e theta)
 
 % pre-alocacao das matrizes utilizadas no processo de iteracao
-[Vtheta_calc, I_calc, S_calc, P_calc, Q_calc, delta_P, delta_Q, delta_theta, delta_V] = deal(zeros(n_barras, 1));
+[Vtheta_calc, I_calc, S_calc, P_calc, Q_calc, delta_P, delta_Q, delta_theta, delta_V, graph_delta_P, graph_delta_Q] = deal(zeros(n_barras, 1));
 [delta_PQ, delta_thetaV] = deal([zeros(n_barras, 1); zeros(n_barras, 1)]);
 [H, N, M, L] = deal(zeros(n_barras));
 [Jacob, Jacob_bn] = deal(zeros(2 * n_barras));
@@ -113,7 +113,7 @@ i = 1;
 
 % juncao de V e theta (coordenada polar) para calculo das correntes e potencias
 for k = 1:1:n_barras
-    Vtheta_calc(k,:,i) = V_calc(k,:,i)*exp(j*theta_calc(k,:,i));
+    Vtheta_calc(k,:,i) = V_calc(k,:,i) * exp(j*theta_calc(k,:,i));
 end
 
 % calculo da matriz de correntes
@@ -188,7 +188,7 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     
     % juncao de V e theta (coordenada polar) para calculo das correntes e potencias
     for k = 1:1:n_barras
-        Vtheta_calc(k,:,i + 1) = V_calc(k,:,i + 1)*exp(j*theta_calc(k,:,i + 1));
+        Vtheta_calc(k,:,i + 1) = V_calc(k,:,i + 1) * exp(j*theta_calc(k,:,i + 1));
     end
     
     % novos calculos de correntes e potencias aparentes
@@ -205,9 +205,9 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     
     % preparacao para possivel nova iteracao
     for k = 1:1:n_barras
-        if dados_barra(k, 2) == 2
+        if dados_barra(k, 2) == 2   % barra PV
             delta_PQ(k + n_barras,:,i + 1) = 0;
-        elseif dados_barra(k, 2) == 3
+        elseif dados_barra(k, 2) == 3   % barra V-theta
             delta_PQ(k,:,i + 1) = 0;
             delta_PQ(k + n_barras,:,i + 1) = 0;
         end
@@ -217,7 +217,13 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     i = i + 1;
 end
 
+% numero final de iteracoes
 iteracoes = i - 1;
+
+for k = 1:1:i
+    graph_delta_P(:,k) = delta_PQ(1:size(delta_PQ)/2,:,k);
+    graph_delta_Q(:,k) = delta_PQ(size(delta_PQ)/2+1:size(delta_PQ),:,k);
+end
 
 %%  subsistema 2 (calculo de P e Q + fluxo de potencia e perdas)
 
@@ -227,7 +233,7 @@ Vtheta_calc_final  = zeros(n_barras, 1);
 
 % juncao de V e theta (coordenada polar) para calculo das correntes e potencias
 for k = 1:1:n_barras
-    Vtheta_calc_final(k) = V_calc(k,:,i)*exp(j*theta_calc(k,:,i));
+    Vtheta_calc_final(k) = V_calc(k,:,i) * exp(j*theta_calc(k,:,i));
 end
 
 % novos calculos de correntes e potencias aparentes
@@ -252,14 +258,65 @@ for k = 1:1:size(dados_linha, 1)
         + ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) ) * V_calc(dados_linha(k, 1),:,i) * Bbus(dados_linha(k, 2), dados_linha(k, 1)) * cos(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i) + dados_linha(k, 7)) ...
         - ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) ) * V_calc(dados_linha(k, 1),:,i) * Gbus(dados_linha(k, 2), dados_linha(k, 1)) * sin(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i) + dados_linha(k, 7));
     
-    perdas_P(dados_linha(k, 1), dados_linha(k, 2)) = P_km(dados_linha(k, 1), dados_linha(k, 2)) + P_km(dados_linha(k, 2), dados_linha(k, 1));
-    perdas_P(dados_linha(k, 2), dados_linha(k, 1)) = perdas_P(dados_linha(k, 1), dados_linha(k, 2));
-    
+    perdas_P(dados_linha(k, 1), dados_linha(k, 2)) = P_km(dados_linha(k, 1), dados_linha(k, 2)) + P_km(dados_linha(k, 2), dados_linha(k, 1)); 
     perdas_Q(dados_linha(k, 1), dados_linha(k, 2)) = Q_km(dados_linha(k, 1), dados_linha(k, 2)) + Q_km(dados_linha(k, 2), dados_linha(k, 1));
-    perdas_Q(dados_linha(k, 2), dados_linha(k, 1)) = perdas_Q(dados_linha(k, 1), dados_linha(k, 2));
 end
 
 P_km = sparse(P_km);
 Q_km = sparse(Q_km);
 perdas_P = sparse(perdas_P);
 perdas_Q = sparse(perdas_Q);
+
+%%  impressao de resultados
+
+figure
+subplot(2,1,1)
+bar(graph_delta_P)
+title('Evolucao \DeltaP / iteracao')
+xlabel('nº da barra')
+ylabel('Residuo \DeltaP (pu)')
+grid
+subplot(2,1,2)
+bar(graph_delta_Q)
+title('Evolucao \DeltaQ / iteracao')
+xlabel('nº da barra')
+ylabel('Residuo \DeltaQ (pu)')
+grid
+
+format short
+
+fprintf('---------- RESULTADOS ----------\n\n\n')
+
+
+fprintf('*** SUBSISTEMA 1 ***\n\n')
+
+disp('Abertura angular theta (°):')
+display(rad2deg(theta_calc(:,:,i)))
+figure
+bar(rad2deg(theta_calc(:,:,i)))
+xlabel('nº da barra')
+ylabel('Theta (°)')
+grid
+
+disp('Modulo da tensao (pu):')
+display(V_calc(:,:,i))
+figure
+bar(V_calc(:,:,i))
+xlabel('nº da barra')
+ylabel('Tensao (pu)')
+grid
+
+
+fprintf('\n*** SUBSISTEMA 2 ***\n\n')
+
+disp('Potencia ativa (MW):')
+display(P_calc_final * S_base)
+
+disp('Potencia reativa (MVAr):')
+display(Q_calc_final * S_base)
+
+disp('Perdas de potencia ativa (MW):')
+display(perdas_P * S_base)
+
+disp('Perdas de potencia reativa (MVAr):')
+display(perdas_Q * S_base)

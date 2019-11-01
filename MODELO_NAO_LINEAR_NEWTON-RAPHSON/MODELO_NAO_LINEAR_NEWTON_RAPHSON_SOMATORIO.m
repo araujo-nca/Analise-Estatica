@@ -1,4 +1,4 @@
-%%% FLUXO DE CARGA NAO LINEARIZADO - NEWTON-RAPHSON %%%
+%%% FLUXO DE CARGA NAO LINEARIZADO - NEWTON-RAPHSON - METODO ATRAVES DE SOMATORIOS %%%
 
 %%
 
@@ -10,9 +10,10 @@ clc
 %%  leitura do arquivo de exemplo
 
 % Sistema_4_barras_Monticelli;
-% Sistema_14_barra_2;
+Sistema_14_barra_2;
 % Sistema_24_barras;
-Sistema_33_barras;
+% Sistema_24_barras_naocorrigido;
+% Sistema_33_barras;
 % Sistema_107_barras;
 
 %%  declaracao de variaveis
@@ -42,10 +43,14 @@ y_km = 1 ./ (dados_linha(:, 3) + j*dados_linha(:, 4));
 
 % criacao matriz admitancia nodal
 for k = 1:1:size(dados_linha, 1)
-    Ybus(dados_linha(k, 1), dados_linha(k, 1)) = Ybus(dados_linha(k, 1), dados_linha(k, 1)) + dados_linha(k, 6)^2 * y_km(k) + j*dados_barra(dados_linha(k, 1), 12) + j*dados_linha(k, 5);
+    Ybus(dados_linha(k, 1), dados_linha(k, 1)) = Ybus(dados_linha(k, 1), dados_linha(k, 1)) + dados_linha(k, 6)^2 * y_km(k) + j*dados_linha(k, 5);
     Ybus(dados_linha(k, 1), dados_linha(k, 2)) = Ybus(dados_linha(k, 1), dados_linha(k, 2)) + dados_linha(k, 6) * exp(- j * dados_linha(k, 7)) * (- y_km(k));
     Ybus(dados_linha(k, 2), dados_linha(k, 1)) = Ybus(dados_linha(k, 2), dados_linha(k, 1)) + dados_linha(k, 6) * exp(j * dados_linha(k, 7)) * (- y_km(k));
-    Ybus(dados_linha(k, 2), dados_linha(k, 2)) = Ybus(dados_linha(k, 2), dados_linha(k, 2)) + y_km(k) + j*dados_barra(dados_linha(k, 2), 12) + j*dados_linha(k, 5);
+    Ybus(dados_linha(k, 2), dados_linha(k, 2)) = Ybus(dados_linha(k, 2), dados_linha(k, 2)) + y_km(k) + j*dados_linha(k, 5);
+end
+
+for k = 1:1:n_barras
+    Ybus(k,k) = Ybus(k,k) + j*dados_barra(k, 12);
 end
 
 Gbus = real(Ybus);  % matriz de condutancias
@@ -227,6 +232,9 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     i = i + 1;
 end
 
+% numero final de iteracoes
+iteracoes = i - 1;
+
 %%  subsistema 2 (calculo de P e Q + fluxo de potencia e perdas)
 
 % pre-alocacao de matrizes
@@ -268,13 +276,40 @@ for k = 1:1:size(dados_linha, 1)
         - ( dados_linha(k, 6) * V_calc(dados_linha(k, 2),:,i) ) * V_calc(dados_linha(k, 1),:,i) * Gbus(dados_linha(k, 2), dados_linha(k, 1)) * sin(theta_calc(dados_linha(k, 2),:,i) - theta_calc(dados_linha(k, 1),:,i) + dados_linha(k, 7));
     
     perdas_P(dados_linha(k, 1), dados_linha(k, 2)) = P_km(dados_linha(k, 1), dados_linha(k, 2)) + P_km(dados_linha(k, 2), dados_linha(k, 1));
-    perdas_P(dados_linha(k, 2), dados_linha(k, 1)) = perdas_P(dados_linha(k, 1), dados_linha(k, 2));
-    
     perdas_Q(dados_linha(k, 1), dados_linha(k, 2)) = Q_km(dados_linha(k, 1), dados_linha(k, 2)) + Q_km(dados_linha(k, 2), dados_linha(k, 1));
-    perdas_Q(dados_linha(k, 2), dados_linha(k, 1)) = perdas_Q(dados_linha(k, 1), dados_linha(k, 2));
 end
 
 P_km = sparse(P_km);
 Q_km = sparse(Q_km);
 perdas_P = sparse(perdas_P);
 perdas_Q = sparse(perdas_Q);
+
+%%  impressao de resultados
+
+format short
+
+fprintf('---------- RESULTADOS ----------\n\n\n')
+
+
+fprintf('*** SUBSISTEMA 1 ***\n\n')
+
+disp('Abertura angular theta (°):')
+display(rad2deg(theta_calc(:,:,i)))
+
+disp('Modulo da tensao (pu):')
+display(V_calc(:,:,i))
+
+
+fprintf('\n*** SUBSISTEMA 2 ***\n\n')
+
+disp('Potencia ativa (pu):')
+display(P_calc_final)
+
+disp('Potencia reativa (pu):')
+display(Q_calc_final)
+
+disp('Perdas de potencia ativa (pu):')
+display(perdas_P)
+
+disp('Perdas de potencia reativa (pu):')
+display(perdas_Q)
