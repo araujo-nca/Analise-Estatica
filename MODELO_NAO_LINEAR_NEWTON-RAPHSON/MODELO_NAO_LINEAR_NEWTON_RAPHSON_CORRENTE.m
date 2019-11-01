@@ -309,14 +309,14 @@ grid
 
 fprintf('\n*** SUBSISTEMA 2 ***\n\n')
 
-disp('Potencia ativa (pu):')
-display(P_calc_final)
+disp('Potencia ativa (MW):')
+display(P_calc_final * S_base)
 
-disp('Potencia reativa (pu):')
-display(Q_calc_final)
+disp('Potencia reativa (MVAr):')
+display(Q_calc_final * S_base)
 
-disp('Perdas de potencia ativa (pu):')
-display(perdas_P)
+disp('Perdas de potencia ativa (MW):')
+display(perdas_P * S_base)
 
-disp('Perdas de potencia reativa (pu):')
-display(perdas_Q)
+disp('Perdas de potencia reativa (MVAr):')
+display(perdas_Q * S_base)
