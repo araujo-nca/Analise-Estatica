@@ -167,10 +167,10 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     % aplicacao do big number de acordo de com o tipo das barras
     for k = 1:1:n_barras
         if dados_barra(k, 2) == 2   % barra PV
-            L(k, k) = 10e15;
+            L(k, k) = 10e12;
         elseif dados_barra(k, 2) == 3   % barra V-theta
-            L(k, k) = 10e15;
-            H(k, k) = 10e15;
+            H(k, k) = 10e12;
+            L(k, k) = 10e12;
         end
     end
     
@@ -180,7 +180,7 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     % calculo dos componentes delta theta e delta V
     delta_thetaV(:,:,i) = Jacob_bn(:,:,i) \ delta_PQ(:,:,i);
     delta_theta(:,:,i) = delta_thetaV(1:size(delta_thetaV)/2,:,i);
-    delta_V(:,:,i) = delta_thetaV(size(delta_thetaV)/2+1:size(delta_thetaV),:,i);
+    delta_V(:,:,i) = delta_thetaV(size(delta_thetaV)/2 + 1:size(delta_thetaV),:,i);
     
     % calculo dos componentes theta e V
     theta_calc(:,:,i + 1) = theta_calc(:,:,i) + delta_theta(:,:,i);
@@ -205,9 +205,9 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     
     % preparacao para possivel nova iteracao
     for k = 1:1:n_barras
-        if dados_barra(k, 2) == 2
+        if dados_barra(k, 2) == 2   % barra PV
             delta_PQ(k + n_barras,:,i + 1) = 0;
-        elseif dados_barra(k, 2) == 3
+        elseif dados_barra(k, 2) == 3   % barra V-theta
             delta_PQ(k,:,i + 1) = 0;
             delta_PQ(k + n_barras,:,i + 1) = 0;
         end
