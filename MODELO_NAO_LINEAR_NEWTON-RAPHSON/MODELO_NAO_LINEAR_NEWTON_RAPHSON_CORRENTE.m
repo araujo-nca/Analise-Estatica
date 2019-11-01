@@ -12,7 +12,8 @@ clc
 % Sistema_4_barras_Monticelli;
 % Sistema_14_barra_2;
 % Sistema_24_barras;
-% Sistema_33_barras;
+% Sistema_24_barras_naocorrigido;
+Sistema_33_barras;
 % Sistema_107_barras;
 
 %%  declaracao de variaveis
@@ -42,10 +43,14 @@ y_km = 1 ./ (dados_linha(:, 3) + j*dados_linha(:, 4));
 
 % criacao matriz admitancia nodal
 for k = 1:1:size(dados_linha, 1)
-    Ybus(dados_linha(k, 1), dados_linha(k, 1)) = Ybus(dados_linha(k, 1), dados_linha(k, 1)) + dados_linha(k, 6)^2 * y_km(k) + j*dados_barra(dados_linha(k, 1), 12) + j*dados_linha(k, 5);
+    Ybus(dados_linha(k, 1), dados_linha(k, 1)) = Ybus(dados_linha(k, 1), dados_linha(k, 1)) + dados_linha(k, 6)^2 * y_km(k) + j*dados_linha(k, 5);
     Ybus(dados_linha(k, 1), dados_linha(k, 2)) = Ybus(dados_linha(k, 1), dados_linha(k, 2)) + dados_linha(k, 6) * exp(- j * dados_linha(k, 7)) * (- y_km(k));
     Ybus(dados_linha(k, 2), dados_linha(k, 1)) = Ybus(dados_linha(k, 2), dados_linha(k, 1)) + dados_linha(k, 6) * exp(j * dados_linha(k, 7)) * (- y_km(k));
-    Ybus(dados_linha(k, 2), dados_linha(k, 2)) = Ybus(dados_linha(k, 2), dados_linha(k, 2)) + y_km(k) + j*dados_barra(dados_linha(k, 2), 12) + j*dados_linha(k, 5);
+    Ybus(dados_linha(k, 2), dados_linha(k, 2)) = Ybus(dados_linha(k, 2), dados_linha(k, 2)) + y_km(k) + j*dados_linha(k, 5);
+end
+
+for k = 1:1:n_barras
+    Ybus(k,k) = Ybus(k,k) + j*dados_barra(k, 12);
 end
 
 Gbus = real(Ybus);  % matriz de condutancias
@@ -211,6 +216,8 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     % acrescimo de uma unidade ao contador
     i = i + 1;
 end
+
+iteracoes = i - 1;
 
 %%  subsistema 2 (calculo de P e Q + fluxo de potencia e perdas)
 
