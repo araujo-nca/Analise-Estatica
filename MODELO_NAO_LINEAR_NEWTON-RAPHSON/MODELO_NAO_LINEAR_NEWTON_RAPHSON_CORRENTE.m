@@ -9,6 +9,8 @@ clc
 
 %%  leitura do arquivo de exemplo
 
+% Sistema_ex2barrasPV;
+% Sistema_ex2barrasPQ;
 % Sistema_4_barras_Monticelli;
 % Sistema_14_barra_2;
 % Sistema_24_barras;
