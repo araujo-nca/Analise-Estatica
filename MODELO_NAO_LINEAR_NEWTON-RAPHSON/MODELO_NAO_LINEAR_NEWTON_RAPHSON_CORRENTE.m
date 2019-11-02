@@ -118,9 +118,8 @@ for k = 1:1:n_barras
     Vtheta_calc(k,:,i) = V_calc(k,:,i) * exp(j*theta_calc(k,:,i));
 end
 
-% calculo da matriz de correntes
+% calculo das matrizes de correntes e potencias aparentes a partir dos chutes iniciais
 I_calc(:,:,i) = Ybus * Vtheta_calc(:,:,i);
-% calculo da matriz potencia aparente
 S_calc(:,:,i) = Vtheta_calc(:,:,i) .* conj(I_calc(:,:,i));
 
 P_calc(:,:,i) = real(S_calc(:,:,i));    % matriz potencia ativa
