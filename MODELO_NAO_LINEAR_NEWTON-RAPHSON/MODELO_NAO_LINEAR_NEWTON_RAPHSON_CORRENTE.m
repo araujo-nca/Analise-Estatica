@@ -12,7 +12,7 @@ clc
 % Sistema_ex2barrasPV;
 % Sistema_ex2barrasPQ;
 % Sistema_4_barras_Monticelli;
-% Sistema_14_barra_2;
+% Sistema_14_barras;
 % Sistema_24_barras;
 % Sistema_24_barras_naocorrigido;
 % Sistema_33_barras;
@@ -118,9 +118,8 @@ for k = 1:1:n_barras
     Vtheta_calc(k,:,i) = V_calc(k,:,i) * exp(j*theta_calc(k,:,i));
 end
 
-% calculo da matriz de correntes
+% calculo das matrizes de correntes e potencias aparentes a partir dos chutes iniciais
 I_calc(:,:,i) = Ybus * Vtheta_calc(:,:,i);
-% calculo da matriz potencia aparente
 S_calc(:,:,i) = Vtheta_calc(:,:,i) .* conj(I_calc(:,:,i));
 
 P_calc(:,:,i) = real(S_calc(:,:,i));    % matriz potencia ativa
@@ -219,9 +218,6 @@ while max(abs(delta_PQ(:,:,i))) >= erro_admitido
     i = i + 1;
 end
 
-% numero final de iteracoes
-iteracoes = i - 1;
-
 for k = 1:1:i
     graph_delta_P(:,k) = delta_PQ(1:size(delta_PQ)/2,:,k);
     graph_delta_Q(:,k) = delta_PQ(size(delta_PQ)/2+1:size(delta_PQ),:,k);
@@ -275,13 +271,13 @@ figure
 subplot(2,1,1)
 bar(graph_delta_P)
 title('Evolucao \DeltaP / iteracao')
-xlabel('nï¿½ da barra')
+xlabel('nº da barra')
 ylabel('Residuo \DeltaP (pu)')
 grid
 subplot(2,1,2)
 bar(graph_delta_Q)
 title('Evolucao \DeltaQ / iteracao')
-xlabel('nï¿½ da barra')
+xlabel('nº da barra')
 ylabel('Residuo \DeltaQ (pu)')
 grid
 
@@ -292,19 +288,19 @@ fprintf('---------- RESULTADOS ----------\n\n\n')
 
 fprintf('*** SUBSISTEMA 1 ***\n\n')
 
-disp('Abertura angular theta (ï¿½):')
+disp('Abertura angular theta (º):')
 display(rad2deg(theta_calc(:,:,i)))
 figure
 bar(rad2deg(theta_calc(:,:,i)))
-xlabel('nï¿½ da barra')
-ylabel('Theta (ï¿½)')
+xlabel('nº da barra')
+ylabel('Theta (º)')
 grid
 
 disp('Modulo da tensao (pu):')
 display(V_calc(:,:,i))
 figure
 bar(V_calc(:,:,i))
-xlabel('nï¿½ da barra')
+xlabel('nº da barra')
 ylabel('Tensao (pu)')
 grid
 
